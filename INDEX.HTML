@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambil Gambar dan Cetak</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            text-align: center;
+        }
+        .input-container {
+            margin: 10px 0;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        #camera, #photo {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #photo {
+            background-color: #fff;
+            display: block;
+        }
+        button {
+            background-color: #4CAF50; /* Hijau */
+            color: white;
+            padding: 10px 20px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateY(2px);
+        }
+        select, input {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>Ambil Gambar dari Kamera</h2>
+
+    <!-- Input untuk Nama dan Nomor BAST -->
+    <div class="input-container">
+        <input type="text" id="nameInput" placeholder="Masukkan Nama">
+        <input type="text" id="bastInput" placeholder="Masukkan Nomor BAST">
+    </div>
+
+    <!-- Dropdown untuk memilih perangkat kamera -->
+    <select id="cameraSelect">
+        <option value="">Pilih Kamera</option>
+    </select>
+
+    <div class="container">
+        <!-- Kamera Video -->
+        <video id="camera" autoplay></video>
+        <!-- Gambar yang Diambil -->
+        <img id="photo" alt="Hasil Gambar">
+    </div>
+
+    <!-- Tombol Ambil Gambar dan Cetak -->
+    <button id="takePhoto">Ambil Gambar</button>
+    <button id="printPhoto">Cetak Gambar</button>
+
+    <canvas id="photoCanvas" style="display:none;"></canvas>
+
+    <script>
+        const cameraSelect = document.getElementById('cameraSelect');
+        const camera = document.getElementById('camera');
+        const photo = document.getElementById('photo');
+        const canvas = document.getElementById('photoCanvas');
+        const takePhotoButton = document.getElementById('takePhoto');
+        const printPhotoButton = document.getElementById('printPhoto');
+        const nameInput = document.getElementById('nameInput');
+        const bastInput = document.getElementById('bastInput');
+        const context = canvas.getContext('2d');
+        let currentStream = null;
+
+        // Fungsi untuk menghentikan stream yang berjalan sebelumnya
+        function stopStream(stream) {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        // Fungsi untuk memulai kamera dengan ID perangkat yang dipilih
+        function startCamera(deviceId) {
+            // Menghentikan stream sebelumnya jika ada
+            if (currentStream) {
+                stopStream(currentStream);
+            }
+
+            const constraints = {
+                video: {
+                    deviceId: deviceId ? { exact: deviceId } : undefined
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+                currentStream = stream;
+                camera.srcObject = stream;
+            }).catch(error => {
+                console.error("Error accessing camera: ", error);
+            });
+        }
+
+        // Mengambil daftar perangkat input media (kamera)
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+            devices.forEach(device => {
+                if (device.kind === 'videoinput') {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `Kamera ${cameraSelect.length + 1}`;
+                    cameraSelect.appendChild(option);
+                }
+            });
+        }).catch(error => {
+            console.error("Error enumerating devices: ", error);
+        });
+
+        // Mengganti kamera berdasarkan pilihan dropdown
+        cameraSelect.addEventListener('change', () => {
+            const deviceId = cameraSelect.value;
+            startCamera(deviceId);
+        });
+
+        // Ambil Gambar
+        takePhotoButton.addEventListener('click', () => {
+            // Menyesuaikan ukuran canvas dengan ukuran video
+            canvas.width = camera.videoWidth;
+            canvas.height = camera.videoHeight;
+
+            // Menggambar gambar dari video ke canvas
+            context.drawImage(camera, 0, 0, canvas.width, canvas.height);
+
+            // Mendapatkan nilai dari input nama dan nomor BAST
+            const name = nameInput.value;
+            const bastNumber = bastInput.value;
+
+            // Menambahkan teks Nama dan Nomor BAST di pojok kanan bawah
+            context.font = "20px Arial";
+            context.fillStyle = "white";
+            context.textAlign = "right";
+
+            // Posisi untuk teks Nama
+            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 40);
+
+            // Posisi untuk teks Nomor BAST
+            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 10);
+
+            // Menyimpan gambar ke dalam elemen <img>
+            const imageData = canvas.toDataURL('image/jpeg'); // Mengubah format menjadi JPG
+            photo.src = imageData;
+
+            // Membuat elemen <a> untuk mengunduh gambar
+            const downloadLink = document.createElement('a');
+            downloadLink.href = imageData;
+            downloadLink.download = `${bastNumber}.jpg`; // Nama file berdasarkan Nomor BAST
+            downloadLink.click(); // Klik otomatis untuk mengunduh
+        });
+
+        // Cetak Gambar
+        printPhotoButton.addEventListener('click', () => {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<img src="' + photo.src + '" onload="window.print();window.close()">');
+            printWindow.document.close();
+        });
+
+        // Mulai kamera pertama kali dengan kamera default
+        startCamera();
+    </script>
+</body>
+</html>
