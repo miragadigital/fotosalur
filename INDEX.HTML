@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambil Gambar dan Cetak</title>
+    <title>Ambil Gambar dan Cetak dengan Geotag</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -100,7 +100,7 @@
     </style>
 </head>
 <body>
-    <h2>Ambil Gambar dari Kamera</h2>
+    <h2>Ambil Gambar dari Kamera dengan Geotag</h2>
 
     <!-- Input untuk Nama dan Nomor BAST -->
     <div class="input-container">
@@ -137,6 +137,8 @@
         const bastInput = document.getElementById('bastInput');
         const context = canvas.getContext('2d');
         let currentStream = null;
+        let latitude = '';
+        let longitude = '';
 
         // Fungsi untuk menghentikan stream yang berjalan sebelumnya
         function stopStream(stream) {
@@ -186,6 +188,26 @@
             startCamera(deviceId);
         });
 
+        // Fungsi untuk mendapatkan lokasi (geotag)
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        latitude = position.coords.latitude;
+                        longitude = position.coords.longitude;
+                    },
+                    (error) => {
+                        console.error('Error getting location: ', error);
+                    }
+                );
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Ambil lokasi pengguna ketika halaman pertama kali dimuat
+        getLocation();
+
         // Ambil Gambar
         takePhotoButton.addEventListener('click', () => {
             // Menyesuaikan ukuran canvas dengan ukuran video
@@ -205,10 +227,15 @@
             context.textAlign = "right";
 
             // Posisi untuk teks Nama
-            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 40);
+            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 80);
 
             // Posisi untuk teks Nomor BAST
-            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 10);
+            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 50);
+
+            // Menambahkan Geotag (Latitude dan Longitude) di bawah Nama dan Nomor BAST
+            if (latitude && longitude) {
+                context.fillText(`Lat: ${latitude.toFixed(5)}, Long: ${longitude.toFixed(5)}`, canvas.width - 20, canvas.height - 20);
+            }
 
             // Menyimpan gambar ke dalam elemen <img>
             const imageData = canvas.toDataURL('image/jpeg'); // Mengubah format menjadi JPG
