@@ -100,7 +100,7 @@
     </style>
 </head>
 <body>
-    <h2>Ambil Gambar dari Kamera dengan Geotag</h2>
+    <h2>Ambil Gambar dari Kamera dengan Geotag & Tanggal</h2>
 
     <!-- Input untuk Nama dan Nomor BAST -->
     <div class="input-container">
@@ -208,6 +208,14 @@
         // Ambil lokasi pengguna ketika halaman pertama kali dimuat
         getLocation();
 
+        // Fungsi untuk mendapatkan tanggal dan waktu saat ini
+        function getCurrentDate() {
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+            return `${date} ${time}`;
+        }
+
         // Ambil Gambar
         takePhotoButton.addEventListener('click', () => {
             // Menyesuaikan ukuran canvas dengan ukuran video
@@ -217,9 +225,10 @@
             // Menggambar gambar dari video ke canvas
             context.drawImage(camera, 0, 0, canvas.width, canvas.height);
 
-            // Mendapatkan nilai dari input nama dan nomor BAST
+            // Mendapatkan nilai dari input nama, nomor BAST, dan tanggal
             const name = nameInput.value;
             const bastNumber = bastInput.value;
+            const currentDate = getCurrentDate(); // Dapatkan tanggal dan waktu saat ini
 
             // Menambahkan teks Nama dan Nomor BAST di pojok kanan bawah
             context.font = "20px Arial";
@@ -227,15 +236,18 @@
             context.textAlign = "right";
 
             // Posisi untuk teks Nama
-            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 80);
+            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 110);
 
             // Posisi untuk teks Nomor BAST
-            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 50);
+            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 80);
 
             // Menambahkan Geotag (Latitude dan Longitude) di bawah Nama dan Nomor BAST
             if (latitude && longitude) {
-                context.fillText(`Lat: ${latitude.toFixed(5)}, Long: ${longitude.toFixed(5)}`, canvas.width - 20, canvas.height - 20);
+                context.fillText(`Lat: ${latitude.toFixed(5)}, Long: ${longitude.toFixed(5)}`, canvas.width - 20, canvas.height - 50);
             }
+
+            // Menambahkan tanggal di bawah geotag
+            context.fillText(`Tanggal: ${currentDate}`, canvas.width - 20, canvas.height - 20);
 
             // Menyimpan gambar ke dalam elemen <img>
             const imageData = canvas.toDataURL('image/jpeg'); // Mengubah format menjadi JPG
