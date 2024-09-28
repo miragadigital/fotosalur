@@ -236,10 +236,10 @@
             context.textAlign = "right";
 
             // Posisi untuk teks Nama
-            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 110);
+            context.fillText(`${name}`, canvas.width - 20, canvas.height - 110);
 
             // Posisi untuk teks Nomor BAST
-            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 80);
+            context.fillText(`${bastNumber}`, canvas.width - 20, canvas.height - 80);
 
             // Menambahkan Geotag (Latitude dan Longitude) di bawah Nama dan Nomor BAST
             if (latitude && longitude) {
@@ -247,7 +247,7 @@
             }
 
             // Menambahkan tanggal di bawah geotag
-            context.fillText(`Tanggal: ${currentDate}`, canvas.width - 20, canvas.height - 20);
+            context.fillText(`${currentDate}`, canvas.width - 20, canvas.height - 20);
 
             // Menyimpan gambar ke dalam elemen <img>
             const imageData = canvas.toDataURL('image/jpeg'); // Mengubah format menjadi JPG
