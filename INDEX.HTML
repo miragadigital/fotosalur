@@ -123,6 +123,7 @@
     <!-- Tombol Ambil Gambar dan Cetak -->
     <button id="takePhoto">Ambil Gambar</button>
     <button id="printPhoto">Cetak Gambar</button>
+    <button id="printPdf">Cetak PDF</button> <!-- Tombol untuk mencetak PDF -->
 
     <canvas id="photoCanvas" style="display:none;"></canvas>
 
@@ -133,6 +134,7 @@
         const canvas = document.getElementById('photoCanvas');
         const takePhotoButton = document.getElementById('takePhoto');
         const printPhotoButton = document.getElementById('printPhoto');
+        const printPdfButton = document.getElementById('printPdf');
         const nameInput = document.getElementById('nameInput');
         const bastInput = document.getElementById('bastInput');
         const context = canvas.getContext('2d');
@@ -236,18 +238,18 @@
             context.textAlign = "right";
 
             // Posisi untuk teks Nama
-            context.fillText(`${name}`, canvas.width - 20, canvas.height - 110);
+            context.fillText(`Nama: ${name}`, canvas.width - 20, canvas.height - 110);
 
             // Posisi untuk teks Nomor BAST
-            context.fillText(`${bastNumber}`, canvas.width - 20, canvas.height - 80);
+            context.fillText(`No. BAST: ${bastNumber}`, canvas.width - 20, canvas.height - 80);
 
             // Menambahkan Geotag (Latitude dan Longitude) di bawah Nama dan Nomor BAST
             if (latitude && longitude) {
-                context.fillText(`Lat: ${latitude.toFixed(5)}, Long: ${longitude.toFixed(5)}`, canvas.width - 20, canvas.height - 50);
+                context.fillText(`Lat: ${latitude.toFixed(6)}, Long: ${longitude.toFixed(6)}`, canvas.width - 20, canvas.height - 50);
             }
 
-            // Menambahkan tanggal di bawah geotag
-            context.fillText(`${currentDate}`, canvas.width - 20, canvas.height - 20);
+            // Menambahkan tanggal dan waktu pengambilan gambar
+            context.fillText(`Tanggal: ${currentDate}`, canvas.width - 20, canvas.height - 20);
 
             // Menyimpan gambar ke dalam elemen <img>
             const imageData = canvas.toDataURL('image/jpeg'); // Mengubah format menjadi JPG
@@ -265,6 +267,27 @@
             const printWindow = window.open('', '_blank');
             printWindow.document.write('<img src="' + photo.src + '" onload="window.print();window.close()">');
             printWindow.document.close();
+        });
+
+        // Fungsi untuk mencetak PDF
+        printPdfButton.addEventListener('click', () => {
+            const bastNumber = bastInput.value; // Mengambil nomor BAST dari input
+            const pdfPath = `filepdf/${bastNumber}.pdf`; // Menentukan path file PDF dalam folder "filepdf"
+
+            // Cek apakah file PDF ada di server
+            fetch(pdfPath).then(response => {
+                if (response.ok) {
+                    // Jika file ditemukan, buka di tab baru dan tampilkan dialog cetak
+                    const printWindow = window.open(pdfPath, '_blank');
+                    printWindow.onload = () => printWindow.print();
+                } else {
+                    // Jika file tidak ditemukan, tampilkan pesan peringatan
+                    alert("File tidak ditemukan, cek kembali nomor BAST");
+                }
+            }).catch(error => {
+                console.error("Error fetching PDF:", error);
+                alert("Terjadi kesalahan saat mencoba mengakses file.");
+            });
         });
 
         // Mulai kamera pertama kali dengan kamera default
